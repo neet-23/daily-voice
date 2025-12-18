@@ -31,7 +31,52 @@ h1 {
 .date {
   color: #666;
   font-size: 14px;
+  margin-bottom: 20px;
+}
+.audio-controls {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  border-radius: 15px;
   margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.play-button {
+  background: white;
+  color: #667eea;
+  border: none;
+  padding: 15px 30px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.play-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.play-button:active {
+  transform: scale(0.95);
+}
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: white;
+}
+.speed-control {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
 }
 h2 {
   color: #667eea;
@@ -77,18 +122,43 @@ h2 {
   color: #999;
   font-size: 14px;
 }
+.status {
+  color: white;
+  font-size: 14px;
+  text-align: center;
+}
 @media (max-width: 600px) {
   .container { padding: 20px; }
   h1 { font-size: 24px; }
   h2 { font-size: 20px; }
+  .play-button { font-size: 16px; padding: 12px 25px; }
 }
 </style>
 </head>
 <body>
 <div class="container">
 <h1>📱 今日のAIニュースとお金になる話</h1>
-<div class="date">生成日時: 2025年12月18日 08:49</div>
+<div class="date">生成日時: 2025年12月18日 09:10</div>
 
+<div class="audio-controls">
+  <button class="play-button" id="playBtn" onclick="toggleSpeech()">
+    <span id="playIcon">▶️</span>
+    <span id="playText">音声で聞く</span>
+  </button>
+  <div class="controls">
+    <label for="speed">速度:</label>
+    <select id="speed" class="speed-control" onchange="changeSpeed()">
+      <option value="0.75">0.75x</option>
+      <option value="1" selected>1x (標準)</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+      <option value="2">2x</option>
+    </select>
+  </div>
+  <div class="status" id="status">準備完了</div>
+</div>
+
+<div id="content">
 <h2>🤖 AIニュース</h2>
 
 <div class="news-item">
@@ -129,10 +199,75 @@ h2 {
 <h3>Perplexity AI</h3>
 <p>無料で使える検索特化AI。情報収集が速くて便利です</p>
 </div>
+</div>
 
 <div class="footer">
 Powered by Google Apps Script + GitHub Pages
 </div>
 </div>
+
+<script>
+let synth = window.speechSynthesis;
+let utterance = null;
+let isPlaying = false;
+
+function getTextContent() {
+  const content = document.getElementById('content');
+  return content.innerText;
+}
+
+function toggleSpeech() {
+  if (isPlaying) {
+    synth.cancel();
+    isPlaying = false;
+    updateButton(false);
+    document.getElementById('status').textContent = '停止しました';
+  } else {
+    const text = getTextContent();
+    utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ja-JP';
+    utterance.rate = parseFloat(document.getElementById('speed').value);
+    
+    utterance.onstart = () => {
+      isPlaying = true;
+      updateButton(true);
+      document.getElementById('status').textContent = '再生中...';
+    };
+    
+    utterance.onend = () => {
+      isPlaying = false;
+      updateButton(false);
+      document.getElementById('status').textContent = '再生完了';
+    };
+    
+    utterance.onerror = (e) => {
+      isPlaying = false;
+      updateButton(false);
+      document.getElementById('status').textContent = 'エラー: ' + e.error;
+    };
+    
+    synth.speak(utterance);
+  }
+}
+
+function changeSpeed() {
+  if (isPlaying) {
+    synth.cancel();
+    toggleSpeech();
+  }
+}
+
+function updateButton(playing) {
+  const icon = document.getElementById('playIcon');
+  const text = document.getElementById('playText');
+  if (playing) {
+    icon.textContent = '⏸️';
+    text.textContent = '停止';
+  } else {
+    icon.textContent = '▶️';
+    text.textContent = '音声で聞く';
+  }
+}
+</script>
 </body>
 </html>
