@@ -1,10 +1,10 @@
-name: Daily Voice Generator
+name: Generate Voice from News
 
 on:
   schedule:
-    # 毎日 午前6時(日本時間)に実行 = UTC 21時
-    - cron: '0 21 * * *'
-  workflow_dispatch:  # 手動実行も可能
+    # 毎日 午前6時5分(日本時間)に実行 = UTC 21:05
+    - cron: '5 21 * * *'
+  workflow_dispatch:
 
 jobs:
   generate-voice:
@@ -15,6 +15,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         token: ${{ secrets.GH_TOKEN }}
+        fetch-depth: 0
     
     - name: Setup Python
       uses: actions/setup-python@v4
@@ -25,7 +26,7 @@ jobs:
       run: |
         pip install gtts requests
     
-    - name: Generate voice news
+    - name: Generate voice and HTML
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         GITHUB_USERNAME: ${{ github.repository_owner }}
@@ -43,83 +44,309 @@ jobs:
         GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
         DAYS_TO_KEEP = 2
 
-        def collect_news():
-            content = """
-            今日のAIニュースとお金になる話をお届けします。
+        def fetch_news_text():
+            """GitHubからニューステキストを取得"""
+            today = (datetime.utcnow() + timedelta(hours=9)).strftime('%Y-%m-%d')
+            url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{today}/news.txt"
             
-            まず、AIニュースです。
+            headers = {'Authorization': f'token {GITHUB_TOKEN}'}
             
-            1つ目、ChatGPT新機能リリース。
-            最近、ChatGPTに音声会話機能が追加されました。スマホアプリから無料で使えます。
-            自然な会話ができるので、英会話練習にも使えそうです。
+            try:
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    content = response.json()['content']
+                    text = base64.b64decode(content).decode('utf-8')
+                    print("ニューステキスト取得成功")
+                    return text, today
+                else:
+                    print(f"ニューステキスト未取得: {response.status_code}")
+                    return None, today
+            except Exception as e:
+                print(f"エラー: {e}")
+                return None, today
+
+        def create_speech_text(news_text):
+            """音声用のテキストを整形"""
+            # 記号を読みやすく変換
+            text = news_text.replace('===', '')
+            text = text.replace('【', '')
+            text = text.replace('】', '。')
+            text = text.replace('•', '')
+            text = text.replace(':', '、')
             
-            2つ目、AI画像生成ツールの進化。
-            MidjourneyやStable Diffusionなど、AI画像生成ツールがさらに進化しています。
-            プロンプト、つまり指示文を工夫すれば、かなり高品質な画像が作れます。
+            # 冒頭に挨拶を追加
+            speech_text = "今日のAIニュースとお金になる話をお届けします。\n\n" + text
             
-            次に、お金になる話です。
-            
-            1つ目、AI副業のトレンド。
-            ココナラやランサーズで、AI画像生成の依頼が増えています。
-            1件3000円から1万円程度。Canvaと組み合わせてバナーやロゴを作る人が稼いでいます。
-            
-            2つ目、AIライティングで副業。
-            ブログ記事の下書きをAIで作成し、人間が仕上げるサービスも需要があります。
-            1記事3000文字で5000円程度が相場です。
-            
-            最後に、今すぐ試せる情報です。
-            
-            ChatGPT音声機能は、スマホアプリをダウンロードして、ヘッドフォンアイコンをタップするだけ。
-            
-            Canva AI機能は、無料プランでもText to Imageが使えます。
-            
-            Perplexity AIは、無料で使える検索特化AI。情報収集が速くて便利です。
-            
-            以上、今日のニュースでした。
-            """
-            return content
+            return speech_text
 
         def generate_audio(text, filename):
+            """音声生成"""
             print(f"音声生成中: {filename}")
             tts = gTTS(text=text, lang='ja', slow=False)
             tts.save(filename)
-            print(f"音声生成完了: {filename}")
+            print("音声生成完了")
 
-        def upload_to_github(filename):
-            today = datetime.utcnow().strftime('%Y-%m-%d')
-            file_path = f"{today}/{filename}"
+        def create_html(news_text, date_str):
+            """HTML生成"""
+            # ニュースをHTML形式に変換
+            html_news = news_text.replace('\n', '<br>')
+            html_news = html_news.replace('===', '<h2>')
+            html_news = html_news.replace('【', '<h3>')
+            html_news = html_news.replace('】', '</h3>')
             
-            with open(filename, 'rb') as f:
+            now = datetime.utcnow() + timedelta(hours=9)
+            time_str = now.strftime('%Y年%m月%d日 %H:%M')
+            
+            html = f'''<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今日のAIニュース - {date_str}</title>
+<style>
+* {{ margin: 0; padding: 0; box-sizing: border-box; }}
+body {{
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.8;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
+}}
+.container {{
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}}
+h1 {{
+  color: #333;
+  font-size: 28px;
+  margin-bottom: 10px;
+  border-bottom: 3px solid #667eea;
+  padding-bottom: 15px;
+}}
+.date {{
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}}
+.audio-controls {{
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+}}
+.play-button {{
+  background: white;
+  color: #667eea;
+  border: none;
+  padding: 15px 30px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 15px;
+}}
+.play-button:hover {{
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}}
+.download-button {{
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 2px solid white;
+  padding: 12px 25px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  text-decoration: none;
+}}
+.download-button:hover {{
+  background: white;
+  color: #667eea;
+}}
+.controls {{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: white;
+  margin-bottom: 15px;
+}}
+.speed-control {{
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+}}
+.content {{
+  color: #333;
+  white-space: pre-wrap;
+}}
+.content h2 {{
+  color: #667eea;
+  font-size: 22px;
+  margin: 30px 0 15px 0;
+}}
+.content h3 {{
+  color: #333;
+  font-size: 18px;
+  margin: 20px 0 10px 0;
+}}
+.footer {{
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+  color: #999;
+  font-size: 14px;
+}}
+.status {{
+  color: white;
+  font-size: 14px;
+  text-align: center;
+}}
+@media (max-width: 600px) {{
+  .container {{ padding: 20px; }}
+  h1 {{ font-size: 24px; }}
+}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>📱 今日のAIニュース</h1>
+<div class="date">生成日時: {time_str}</div>
+
+<div class="audio-controls">
+  <button class="play-button" id="playBtn" onclick="toggleSpeech()">
+    <span id="playIcon">▶️</span>
+    <span id="playText">音声で聞く(オンライン)</span>
+  </button>
+  <a href="daily_news.mp3" download class="download-button">
+    <span>📥</span>
+    <span>MP3をダウンロード(オフライン用)</span>
+  </a>
+  <div class="controls">
+    <label for="speed">速度:</label>
+    <select id="speed" class="speed-control" onchange="changeSpeed()">
+      <option value="0.75">0.75x</option>
+      <option value="1" selected>1x</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+    </select>
+  </div>
+  <div class="status" id="status">準備完了</div>
+</div>
+
+<div class="content" id="content">
+{html_news}
+</div>
+
+<div class="footer">
+Google Apps Script (収集) + GitHub Actions (音声化)
+</div>
+</div>
+
+<script>
+let synth = window.speechSynthesis;
+let utterance = null;
+let isPlaying = false;
+
+function getTextContent() {{
+  return document.getElementById('content').innerText;
+}}
+
+function toggleSpeech() {{
+  if (isPlaying) {{
+    synth.cancel();
+    isPlaying = false;
+    updateButton(false);
+    document.getElementById('status').textContent = '停止';
+  }} else {{
+    const text = getTextContent();
+    utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ja-JP';
+    utterance.rate = parseFloat(document.getElementById('speed').value);
+    
+    utterance.onstart = () => {{
+      isPlaying = true;
+      updateButton(true);
+      document.getElementById('status').textContent = '再生中...';
+    }};
+    
+    utterance.onend = () => {{
+      isPlaying = false;
+      updateButton(false);
+      document.getElementById('status').textContent = '完了';
+    }};
+    
+    synth.speak(utterance);
+  }}
+}}
+
+function changeSpeed() {{
+  if (isPlaying) {{
+    synth.cancel();
+    toggleSpeech();
+  }}
+}}
+
+function updateButton(playing) {{
+  const icon = document.getElementById('playIcon');
+  const text = document.getElementById('playText');
+  if (playing) {{
+    icon.textContent = '⏸️';
+    text.textContent = '停止';
+  }} else {{
+    icon.textContent = '▶️';
+    text.textContent = '音声で聞く(オンライン)';
+  }}
+}}
+</script>
+</body>
+</html>'''
+            return html
+
+        def upload_file(local_path, github_path):
+            """ファイルアップロード"""
+            with open(local_path, 'rb') as f:
                 content = base64.b64encode(f.read()).decode('utf-8')
             
-            url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{file_path}"
-            
+            url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{github_path}"
             headers = {
                 'Authorization': f'token {GITHUB_TOKEN}',
                 'Content-Type': 'application/json'
             }
             
             response = requests.get(url, headers=headers)
-            sha = None
-            if response.status_code == 200:
-                sha = response.json()['sha']
+            sha = response.json().get('sha') if response.status_code == 200 else None
             
-            data = {
-                'message': f'Add {filename}',
-                'content': content
-            }
+            data = {'message': f'Update {github_path}', 'content': content}
             if sha:
                 data['sha'] = sha
             
             response = requests.put(url, headers=headers, json=data)
-            
             if response.status_code in [200, 201]:
-                print(f"アップロード成功: {file_path}")
-                print(f"URL: https://{GITHUB_USERNAME}.github.io/{GITHUB_REPO}/{file_path}")
-            else:
-                print(f"アップロード失敗: {response.text}")
+                print(f"アップロード成功: {github_path}")
 
-        def delete_old_files():
+        def delete_old_folders():
+            """古いフォルダを削除"""
             url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/"
             headers = {'Authorization': f'token {GITHUB_TOKEN}'}
             
@@ -136,31 +363,46 @@ jobs:
                     try:
                         folder_date = datetime.strptime(item['name'], '%Y-%m-%d')
                         if folder_date < keep_date:
-                            delete_folder(item['name'])
+                            # フォルダ削除処理
+                            folder_url = f"{url}{item['name']}"
+                            files_response = requests.get(folder_url, headers=headers)
+                            if files_response.status_code == 200:
+                                for file in files_response.json():
+                                    delete_url = f"{folder_url}/{file['name']}"
+                                    requests.delete(delete_url, headers=headers, json={
+                                        'message': f'Delete old file',
+                                        'sha': file['sha']
+                                    })
+                                print(f"削除: {item['name']}")
                     except:
                         pass
 
-        def delete_folder(folder_name):
-            url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{folder_name}"
-            headers = {'Authorization': f'token {GITHUB_TOKEN}'}
+        # メイン処理
+        print("=== 音声・HTML生成開始 ===")
+        
+        # ニューステキスト取得
+        news_text, today = fetch_news_text()
+        
+        if news_text:
+            # 音声用テキスト整形
+            speech_text = create_speech_text(news_text)
             
-            response = requests.get(url, headers=headers)
-            if response.status_code == 200:
-                files = response.json()
-                for file in files:
-                    delete_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{folder_name}/{file['name']}"
-                    data = {
-                        'message': f'Delete {file["name"]}',
-                        'sha': file['sha']
-                    }
-                    requests.delete(delete_url, headers=headers, json=data)
-                print(f"削除完了: {folder_name}")
-
-        print("=== 音声ニュース生成開始 ===")
-        news_text = collect_news()
-        filename = "daily_news.mp3"
-        generate_audio(news_text, filename)
-        upload_to_github(filename)
-        delete_old_files()
-        print("=== 完了 ===")
+            # 音声生成
+            generate_audio(speech_text, "daily_news.mp3")
+            
+            # HTML生成
+            html_content = create_html(news_text, today)
+            with open("index.html", "w", encoding="utf-8") as f:
+                f.write(html_content)
+            
+            # アップロード
+            upload_file("index.html", f"{today}/index.html")
+            upload_file("daily_news.mp3", f"{today}/daily_news.mp3")
+            
+            # 古いフォルダ削除
+            delete_old_folders()
+            
+            print(f"完了! URL: https://{GITHUB_USERNAME}.github.io/{GITHUB_REPO}/{today}/")
+        else:
+            print("ニューステキストが見つかりません。Google Apps Scriptが先に実行されているか確認してください。")
         EOF
