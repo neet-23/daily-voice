@@ -1,0 +1,166 @@
+name: Daily Voice Generator
+
+on:
+  schedule:
+    # 毎日 午前6時(日本時間)に実行 = UTC 21時
+    - cron: '0 21 * * *'
+  workflow_dispatch:  # 手動実行も可能
+
+jobs:
+  generate-voice:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GH_TOKEN }}
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        pip install gtts requests
+    
+    - name: Generate voice news
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        GITHUB_USERNAME: ${{ github.repository_owner }}
+        GITHUB_REPO: ${{ github.event.repository.name }}
+      run: |
+        python << 'EOF'
+        import os
+        from datetime import datetime, timedelta
+        from gtts import gTTS
+        import requests
+        import base64
+
+        GITHUB_USERNAME = os.environ['GITHUB_USERNAME']
+        GITHUB_REPO = os.environ['GITHUB_REPO']
+        GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
+        DAYS_TO_KEEP = 2
+
+        def collect_news():
+            content = """
+            今日のAIニュースとお金になる話をお届けします。
+            
+            まず、AIニュースです。
+            
+            1つ目、ChatGPT新機能リリース。
+            最近、ChatGPTに音声会話機能が追加されました。スマホアプリから無料で使えます。
+            自然な会話ができるので、英会話練習にも使えそうです。
+            
+            2つ目、AI画像生成ツールの進化。
+            MidjourneyやStable Diffusionなど、AI画像生成ツールがさらに進化しています。
+            プロンプト、つまり指示文を工夫すれば、かなり高品質な画像が作れます。
+            
+            次に、お金になる話です。
+            
+            1つ目、AI副業のトレンド。
+            ココナラやランサーズで、AI画像生成の依頼が増えています。
+            1件3000円から1万円程度。Canvaと組み合わせてバナーやロゴを作る人が稼いでいます。
+            
+            2つ目、AIライティングで副業。
+            ブログ記事の下書きをAIで作成し、人間が仕上げるサービスも需要があります。
+            1記事3000文字で5000円程度が相場です。
+            
+            最後に、今すぐ試せる情報です。
+            
+            ChatGPT音声機能は、スマホアプリをダウンロードして、ヘッドフォンアイコンをタップするだけ。
+            
+            Canva AI機能は、無料プランでもText to Imageが使えます。
+            
+            Perplexity AIは、無料で使える検索特化AI。情報収集が速くて便利です。
+            
+            以上、今日のニュースでした。
+            """
+            return content
+
+        def generate_audio(text, filename):
+            print(f"音声生成中: {filename}")
+            tts = gTTS(text=text, lang='ja', slow=False)
+            tts.save(filename)
+            print(f"音声生成完了: {filename}")
+
+        def upload_to_github(filename):
+            today = datetime.utcnow().strftime('%Y-%m-%d')
+            file_path = f"{today}/{filename}"
+            
+            with open(filename, 'rb') as f:
+                content = base64.b64encode(f.read()).decode('utf-8')
+            
+            url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{file_path}"
+            
+            headers = {
+                'Authorization': f'token {GITHUB_TOKEN}',
+                'Content-Type': 'application/json'
+            }
+            
+            response = requests.get(url, headers=headers)
+            sha = None
+            if response.status_code == 200:
+                sha = response.json()['sha']
+            
+            data = {
+                'message': f'Add {filename}',
+                'content': content
+            }
+            if sha:
+                data['sha'] = sha
+            
+            response = requests.put(url, headers=headers, json=data)
+            
+            if response.status_code in [200, 201]:
+                print(f"アップロード成功: {file_path}")
+                print(f"URL: https://{GITHUB_USERNAME}.github.io/{GITHUB_REPO}/{file_path}")
+            else:
+                print(f"アップロード失敗: {response.text}")
+
+        def delete_old_files():
+            url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/"
+            headers = {'Authorization': f'token {GITHUB_TOKEN}'}
+            
+            response = requests.get(url, headers=headers)
+            if response.status_code != 200:
+                return
+            
+            items = response.json()
+            today = datetime.utcnow()
+            keep_date = today - timedelta(days=DAYS_TO_KEEP)
+            
+            for item in items:
+                if item['type'] == 'dir' and len(item['name']) == 10:
+                    try:
+                        folder_date = datetime.strptime(item['name'], '%Y-%m-%d')
+                        if folder_date < keep_date:
+                            delete_folder(item['name'])
+                    except:
+                        pass
+
+        def delete_folder(folder_name):
+            url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{folder_name}"
+            headers = {'Authorization': f'token {GITHUB_TOKEN}'}
+            
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                files = response.json()
+                for file in files:
+                    delete_url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{folder_name}/{file['name']}"
+                    data = {
+                        'message': f'Delete {file["name"]}',
+                        'sha': file['sha']
+                    }
+                    requests.delete(delete_url, headers=headers, json=data)
+                print(f"削除完了: {folder_name}")
+
+        print("=== 音声ニュース生成開始 ===")
+        news_text = collect_news()
+        filename = "daily_news.mp3"
+        generate_audio(news_text, filename)
+        upload_to_github(filename)
+        delete_old_files()
+        print("=== 完了 ===")
+        EOF
