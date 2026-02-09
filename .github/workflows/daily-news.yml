@@ -29,7 +29,11 @@ jobs:
       run: |
         git pull origin main || true
     
-    - name: Create Python script
+    - name: Create and run generator
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        GITHUB_USERNAME: ${{ github.repository_owner }}
+        GITHUB_REPO: ${{ github.event.repository.name }}
       run: |
         cat > generate.py << 'PYEOF'
         import os
@@ -86,228 +90,229 @@ jobs:
             now = datetime.utcnow() + timedelta(hours=9)
             time_str = now.strftime('%Y年%m月%d日 %H:%M')
             
-            html_template = """<!DOCTYPE html>
-        <html lang="ja">
-        <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>今日のAIニュース</title>
-        <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-          line-height: 1.8;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          min-height: 100vh;
-          padding: 20px;
-        }
-        .container {
-          max-width: 800px;
-          margin: 0 auto;
-          background: white;
-          border-radius: 20px;
-          padding: 30px;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        h1 {
-          color: #333;
-          font-size: 28px;
-          margin-bottom: 10px;
-          border-bottom: 3px solid #667eea;
-          padding-bottom: 15px;
-        }
-        .date {
-          color: #666;
-          font-size: 14px;
-          margin-bottom: 20px;
-        }
-        .audio-controls {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          padding: 20px;
-          border-radius: 15px;
-          margin-bottom: 30px;
-        }
-        .play-button {
-          background: white;
-          color: #667eea;
-          border: none;
-          padding: 15px 30px;
-          font-size: 18px;
-          font-weight: bold;
-          border-radius: 50px;
-          cursor: pointer;
-          transition: all 0.3s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          width: 100%;
-          margin-bottom: 15px;
-        }
-        .play-button:hover {
-          transform: scale(1.05);
-          box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        .download-button {
-          background: rgba(255,255,255,0.2);
-          color: white;
-          border: 2px solid white;
-          padding: 12px 25px;
-          font-size: 16px;
-          font-weight: bold;
-          border-radius: 50px;
-          cursor: pointer;
-          transition: all 0.3s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          width: 100%;
-          text-decoration: none;
-        }
-        .download-button:hover {
-          background: white;
-          color: #667eea;
-        }
-        .controls {
-          display: flex;
-          gap: 10px;
-          align-items: center;
-          color: white;
-          margin-bottom: 15px;
-        }
-        .speed-control {
-          background: rgba(255,255,255,0.2);
-          border: 1px solid rgba(255,255,255,0.3);
-          color: white;
-          padding: 8px 15px;
-          border-radius: 20px;
-          font-size: 14px;
-        }
-        .content {
-          color: #333;
-          white-space: pre-wrap;
-        }
-        .content h2 {
-          color: #667eea;
-          font-size: 22px;
-          margin: 30px 0 15px 0;
-        }
-        .content h3 {
-          color: #333;
-          font-size: 18px;
-          margin: 20px 0 10px 0;
-        }
-        .footer {
-          text-align: center;
-          margin-top: 40px;
-          padding-top: 20px;
-          border-top: 1px solid #ddd;
-          color: #999;
-          font-size: 14px;
-        }
-        .status {
-          color: white;
-          font-size: 14px;
-          text-align: center;
-        }
-        </style>
-        </head>
-        <body>
-        <div class="container">
-        <h1>📱 今日のAIニュース</h1>
-        <div class="date">生成日時: {time_str}</div>
-
-        <div class="audio-controls">
-          <button class="play-button" id="playBtn" onclick="toggleSpeech()">
-            <span id="playIcon">▶️</span>
-            <span id="playText">音声で聞く(オンライン)</span>
-          </button>
-          <a href="daily_news.mp3" download class="download-button">
-            <span>📥</span>
-            <span>MP3をダウンロード(オフライン用)</span>
-          </a>
-          <div class="controls">
-            <label for="speed">速度:</label>
-            <select id="speed" class="speed-control" onchange="changeSpeed()">
-              <option value="0.75">0.75x</option>
-              <option value="1" selected>1x</option>
-              <option value="1.25">1.25x</option>
-              <option value="1.5">1.5x</option>
-            </select>
-          </div>
-          <div class="status" id="status">準備完了</div>
-        </div>
-
-        <div class="content" id="content">
-        {html_news}
-        </div>
-
-        <div class="footer">
-        Google Apps Script (収集) + GitHub Actions (音声化)
-        </div>
-        </div>
-
-        <script>
-        let synth = window.speechSynthesis;
-        let utterance = null;
-        let isPlaying = false;
-
-        function getTextContent() {{
-          return document.getElementById('content').innerText;
-        }}
-
-        function toggleSpeech() {{
-          if (isPlaying) {{
-            synth.cancel();
-            isPlaying = false;
-            updateButton(false);
-            document.getElementById('status').textContent = '停止';
-          }} else {{
-            const text = getTextContent();
-            utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'ja-JP';
-            utterance.rate = parseFloat(document.getElementById('speed').value);
+            # HTMLを文字列連結で作成（formatを使わない）
+            html = '<!DOCTYPE html>\n'
+            html += '<html lang="ja">\n'
+            html += '<head>\n'
+            html += '<meta charset="UTF-8">\n'
+            html += '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
+            html += '<title>今日のAIニュース</title>\n'
+            html += '<style>\n'
+            html += '* { margin: 0; padding: 0; box-sizing: border-box; }\n'
+            html += 'body {\n'
+            html += '  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;\n'
+            html += '  line-height: 1.8;\n'
+            html += '  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n'
+            html += '  min-height: 100vh;\n'
+            html += '  padding: 20px;\n'
+            html += '}\n'
+            html += '.container {\n'
+            html += '  max-width: 800px;\n'
+            html += '  margin: 0 auto;\n'
+            html += '  background: white;\n'
+            html += '  border-radius: 20px;\n'
+            html += '  padding: 30px;\n'
+            html += '  box-shadow: 0 20px 60px rgba(0,0,0,0.3);\n'
+            html += '}\n'
+            html += 'h1 {\n'
+            html += '  color: #333;\n'
+            html += '  font-size: 28px;\n'
+            html += '  margin-bottom: 10px;\n'
+            html += '  border-bottom: 3px solid #667eea;\n'
+            html += '  padding-bottom: 15px;\n'
+            html += '}\n'
+            html += '.date {\n'
+            html += '  color: #666;\n'
+            html += '  font-size: 14px;\n'
+            html += '  margin-bottom: 20px;\n'
+            html += '}\n'
+            html += '.audio-controls {\n'
+            html += '  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n'
+            html += '  padding: 20px;\n'
+            html += '  border-radius: 15px;\n'
+            html += '  margin-bottom: 30px;\n'
+            html += '}\n'
+            html += '.play-button {\n'
+            html += '  background: white;\n'
+            html += '  color: #667eea;\n'
+            html += '  border: none;\n'
+            html += '  padding: 15px 30px;\n'
+            html += '  font-size: 18px;\n'
+            html += '  font-weight: bold;\n'
+            html += '  border-radius: 50px;\n'
+            html += '  cursor: pointer;\n'
+            html += '  transition: all 0.3s;\n'
+            html += '  display: flex;\n'
+            html += '  align-items: center;\n'
+            html += '  justify-content: center;\n'
+            html += '  gap: 10px;\n'
+            html += '  width: 100%;\n'
+            html += '  margin-bottom: 15px;\n'
+            html += '}\n'
+            html += '.play-button:hover {\n'
+            html += '  transform: scale(1.05);\n'
+            html += '  box-shadow: 0 5px 15px rgba(0,0,0,0.3);\n'
+            html += '}\n'
+            html += '.download-button {\n'
+            html += '  background: rgba(255,255,255,0.2);\n'
+            html += '  color: white;\n'
+            html += '  border: 2px solid white;\n'
+            html += '  padding: 12px 25px;\n'
+            html += '  font-size: 16px;\n'
+            html += '  font-weight: bold;\n'
+            html += '  border-radius: 50px;\n'
+            html += '  cursor: pointer;\n'
+            html += '  transition: all 0.3s;\n'
+            html += '  display: flex;\n'
+            html += '  align-items: center;\n'
+            html += '  justify-content: center;\n'
+            html += '  gap: 10px;\n'
+            html += '  width: 100%;\n'
+            html += '  text-decoration: none;\n'
+            html += '}\n'
+            html += '.download-button:hover {\n'
+            html += '  background: white;\n'
+            html += '  color: #667eea;\n'
+            html += '}\n'
+            html += '.controls {\n'
+            html += '  display: flex;\n'
+            html += '  gap: 10px;\n'
+            html += '  align-items: center;\n'
+            html += '  color: white;\n'
+            html += '  margin-bottom: 15px;\n'
+            html += '}\n'
+            html += '.speed-control {\n'
+            html += '  background: rgba(255,255,255,0.2);\n'
+            html += '  border: 1px solid rgba(255,255,255,0.3);\n'
+            html += '  color: white;\n'
+            html += '  padding: 8px 15px;\n'
+            html += '  border-radius: 20px;\n'
+            html += '  font-size: 14px;\n'
+            html += '}\n'
+            html += '.content {\n'
+            html += '  color: #333;\n'
+            html += '  white-space: pre-wrap;\n'
+            html += '}\n'
+            html += '.content h2 {\n'
+            html += '  color: #667eea;\n'
+            html += '  font-size: 22px;\n'
+            html += '  margin: 30px 0 15px 0;\n'
+            html += '}\n'
+            html += '.content h3 {\n'
+            html += '  color: #333;\n'
+            html += '  font-size: 18px;\n'
+            html += '  margin: 20px 0 10px 0;\n'
+            html += '}\n'
+            html += '.footer {\n'
+            html += '  text-align: center;\n'
+            html += '  margin-top: 40px;\n'
+            html += '  padding-top: 20px;\n'
+            html += '  border-top: 1px solid #ddd;\n'
+            html += '  color: #999;\n'
+            html += '  font-size: 14px;\n'
+            html += '}\n'
+            html += '.status {\n'
+            html += '  color: white;\n'
+            html += '  font-size: 14px;\n'
+            html += '  text-align: center;\n'
+            html += '}\n'
+            html += '</style>\n'
+            html += '</head>\n'
+            html += '<body>\n'
+            html += '<div class="container">\n'
+            html += '<h1>📱 今日のAIニュース</h1>\n'
+            html += f'<div class="date">生成日時: {time_str}</div>\n'
+            html += '\n'
+            html += '<div class="audio-controls">\n'
+            html += '  <button class="play-button" id="playBtn" onclick="toggleSpeech()">\n'
+            html += '    <span id="playIcon">▶️</span>\n'
+            html += '    <span id="playText">音声で聞く(オンライン)</span>\n'
+            html += '  </button>\n'
+            html += '  <a href="daily_news.mp3" download class="download-button">\n'
+            html += '    <span>📥</span>\n'
+            html += '    <span>MP3をダウンロード(オフライン用)</span>\n'
+            html += '  </a>\n'
+            html += '  <div class="controls">\n'
+            html += '    <label for="speed">速度:</label>\n'
+            html += '    <select id="speed" class="speed-control" onchange="changeSpeed()">\n'
+            html += '      <option value="0.75">0.75x</option>\n'
+            html += '      <option value="1" selected>1x</option>\n'
+            html += '      <option value="1.25">1.25x</option>\n'
+            html += '      <option value="1.5">1.5x</option>\n'
+            html += '    </select>\n'
+            html += '  </div>\n'
+            html += '  <div class="status" id="status">準備完了</div>\n'
+            html += '</div>\n'
+            html += '\n'
+            html += '<div class="content" id="content">\n'
+            html += html_news + '\n'
+            html += '</div>\n'
+            html += '\n'
+            html += '<div class="footer">\n'
+            html += 'Google Apps Script (収集) + GitHub Actions (音声化)\n'
+            html += '</div>\n'
+            html += '</div>\n'
+            html += '\n'
+            html += '<script>\n'
+            html += 'let synth = window.speechSynthesis;\n'
+            html += 'let utterance = null;\n'
+            html += 'let isPlaying = false;\n'
+            html += '\n'
+            html += 'function getTextContent() {\n'
+            html += '  return document.getElementById("content").innerText;\n'
+            html += '}\n'
+            html += '\n'
+            html += 'function toggleSpeech() {\n'
+            html += '  if (isPlaying) {\n'
+            html += '    synth.cancel();\n'
+            html += '    isPlaying = false;\n'
+            html += '    updateButton(false);\n'
+            html += '    document.getElementById("status").textContent = "停止";\n'
+            html += '  } else {\n'
+            html += '    const text = getTextContent();\n'
+            html += '    utterance = new SpeechSynthesisUtterance(text);\n'
+            html += '    utterance.lang = "ja-JP";\n'
+            html += '    utterance.rate = parseFloat(document.getElementById("speed").value);\n'
+            html += '    \n'
+            html += '    utterance.onstart = () => {\n'
+            html += '      isPlaying = true;\n'
+            html += '      updateButton(true);\n'
+            html += '      document.getElementById("status").textContent = "再生中...";\n'
+            html += '    };\n'
+            html += '    \n'
+            html += '    utterance.onend = () => {\n'
+            html += '      isPlaying = false;\n'
+            html += '      updateButton(false);\n'
+            html += '      document.getElementById("status").textContent = "完了";\n'
+            html += '    };\n'
+            html += '    \n'
+            html += '    synth.speak(utterance);\n'
+            html += '  }\n'
+            html += '}\n'
+            html += '\n'
+            html += 'function changeSpeed() {\n'
+            html += '  if (isPlaying) {\n'
+            html += '    synth.cancel();\n'
+            html += '    toggleSpeech();\n'
+            html += '  }\n'
+            html += '}\n'
+            html += '\n'
+            html += 'function updateButton(playing) {\n'
+            html += '  const icon = document.getElementById("playIcon");\n'
+            html += '  const text = document.getElementById("playText");\n'
+            html += '  if (playing) {\n'
+            html += '    icon.textContent = "⏸️";\n'
+            html += '    text.textContent = "停止";\n'
+            html += '  } else {\n'
+            html += '    icon.textContent = "▶️";\n'
+            html += '    text.textContent = "音声で聞く(オンライン)";\n'
+            html += '  }\n'
+            html += '}\n'
+            html += '</script>\n'
+            html += '</body>\n'
+            html += '</html>\n'
             
-            utterance.onstart = () => {{
-              isPlaying = true;
-              updateButton(true);
-              document.getElementById('status').textContent = '再生中...';
-            }};
-            
-            utterance.onend = () => {{
-              isPlaying = false;
-              updateButton(false);
-              document.getElementById('status').textContent = '完了';
-            }};
-            
-            synth.speak(utterance);
-          }}
-        }}
-
-        function changeSpeed() {{
-          if (isPlaying) {{
-            synth.cancel();
-            toggleSpeech();
-          }}
-        }}
-
-        function updateButton(playing) {{
-          const icon = document.getElementById('playIcon');
-          const text = document.getElementById('playText');
-          if (playing) {{
-            icon.textContent = '⏸️';
-            text.textContent = '停止';
-          }} else {{
-            icon.textContent = '▶️';
-            text.textContent = '音声で聞く(オンライン)';
-          }}
-        }}
-        </script>
-        </body>
-        </html>"""
-            
-            return html_template.format(time_str=time_str, html_news=html_news)
+            return html
 
         def upload_file(local_path, github_path):
             with open(local_path, 'rb') as f:
@@ -329,6 +334,8 @@ jobs:
             response = requests.put(url, headers=headers, json=data)
             if response.status_code in [200, 201]:
                 print(f"アップロード成功: {github_path}")
+            else:
+                print(f"アップロード失敗: {response.text}")
 
         def delete_old_folders():
             url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/"
@@ -379,10 +386,5 @@ jobs:
         else:
             print("ニューステキストが見つかりません")
         PYEOF
-    
-    - name: Run Python script
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        GITHUB_USERNAME: ${{ github.repository_owner }}
-        GITHUB_REPO: ${{ github.event.repository.name }}
-      run: python generate.py
+        
+        python generate.py
