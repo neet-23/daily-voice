@@ -2,40 +2,36 @@ name: Generate Voice from News
 
 on:
   schedule:
-    - cron: '5 21 * * *'  # 毎日6:05 JST (21:05 UTC)
-  workflow_dispatch:  # 手動実行も可能
+    - cron: '5 21 * * *'
+  workflow_dispatch:
 
 jobs:
   generate-voice:
     runs-on: ubuntu-latest
-
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
         token: ${{ secrets.GH_TOKEN }}
         fetch-depth: 0
-
+    
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-
+    
     - name: Install dependencies
       run: |
         pip install gtts requests
-
+    
     - name: Pull latest changes
       run: |
         git pull origin main || true
-
-    - name: Generate voice and HTML
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        GITHUB_USERNAME: ${{ github.repository_owner }}
-        GITHUB_REPO: ${{ github.event.repository.name }}
+    
+    - name: Create Python script
       run: |
-        cat > generate.py << 'SCRIPT_END'
+        cat > generate.py << 'PYEOF'
         import os
         from datetime import datetime, timedelta
         from gtts import gTTS
@@ -49,9 +45,9 @@ jobs:
 
         def fetch_news_text():
             today = (datetime.utcnow() + timedelta(hours=9)).strftime('%Y-%m-%d')
-            url = f"<https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{today}/news.txt>"
+            url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{today}/news.txt"
             headers = {'Authorization': f'token {GITHUB_TOKEN}'}
-
+            
             try:
                 response = requests.get(url, headers=headers)
                 if response.status_code == 200:
@@ -72,7 +68,7 @@ jobs:
             text = text.replace('】', '。')
             text = text.replace('•', '')
             text = text.replace(':', '、')
-            speech_text = "今日のAIニュースとお金になる話をお届けします。\\n\\n" + text
+            speech_text = "今日のAIニュースとお金になる話をお届けします。\n\n" + text
             return speech_text
 
         def generate_audio(text, filename):
@@ -82,269 +78,270 @@ jobs:
             print("音声生成完了")
 
         def create_html(news_text, date_str):
-            html_news = news_text.replace('\\n', '<br>')
+            html_news = news_text.replace('\n', '<br>')
             html_news = html_news.replace('===', '<h2>')
             html_news = html_news.replace('【', '<h3>')
             html_news = html_news.replace('】', '</h3>')
-
+            
             now = datetime.utcnow() + timedelta(hours=9)
             time_str = now.strftime('%Y年%m月%d日 %H:%M')
+            
+            html_template = """<!DOCTYPE html>
+        <html lang="ja">
+        <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>今日のAIニュース</title>
+        <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          line-height: 1.8;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          min-height: 100vh;
+          padding: 20px;
+        }
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          background: white;
+          border-radius: 20px;
+          padding: 30px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+          color: #333;
+          font-size: 28px;
+          margin-bottom: 10px;
+          border-bottom: 3px solid #667eea;
+          padding-bottom: 15px;
+        }
+        .date {
+          color: #666;
+          font-size: 14px;
+          margin-bottom: 20px;
+        }
+        .audio-controls {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          padding: 20px;
+          border-radius: 15px;
+          margin-bottom: 30px;
+        }
+        .play-button {
+          background: white;
+          color: #667eea;
+          border: none;
+          padding: 15px 30px;
+          font-size: 18px;
+          font-weight: bold;
+          border-radius: 50px;
+          cursor: pointer;
+          transition: all 0.3s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          width: 100%;
+          margin-bottom: 15px;
+        }
+        .play-button:hover {
+          transform: scale(1.05);
+          box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .download-button {
+          background: rgba(255,255,255,0.2);
+          color: white;
+          border: 2px solid white;
+          padding: 12px 25px;
+          font-size: 16px;
+          font-weight: bold;
+          border-radius: 50px;
+          cursor: pointer;
+          transition: all 0.3s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          width: 100%;
+          text-decoration: none;
+        }
+        .download-button:hover {
+          background: white;
+          color: #667eea;
+        }
+        .controls {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          color: white;
+          margin-bottom: 15px;
+        }
+        .speed-control {
+          background: rgba(255,255,255,0.2);
+          border: 1px solid rgba(255,255,255,0.3);
+          color: white;
+          padding: 8px 15px;
+          border-radius: 20px;
+          font-size: 14px;
+        }
+        .content {
+          color: #333;
+          white-space: pre-wrap;
+        }
+        .content h2 {
+          color: #667eea;
+          font-size: 22px;
+          margin: 30px 0 15px 0;
+        }
+        .content h3 {
+          color: #333;
+          font-size: 18px;
+          margin: 20px 0 10px 0;
+        }
+        .footer {
+          text-align: center;
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 1px solid #ddd;
+          color: #999;
+          font-size: 14px;
+        }
+        .status {
+          color: white;
+          font-size: 14px;
+          text-align: center;
+        }
+        </style>
+        </head>
+        <body>
+        <div class="container">
+        <h1>📱 今日のAIニュース</h1>
+        <div class="date">生成日時: {time_str}</div>
 
-            html = '''<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>今日のAIニュース</title>
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  line-height: 1.8;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  padding: 20px;
-}
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-}
-h1 {
-  color: #333;
-  font-size: 28px;
-  margin-bottom: 10px;
-  border-bottom: 3px solid #667eea;
-  padding-bottom: 15px;
-}
-.date {
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 20px;
-}
-.audio-controls {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  border-radius: 15px;
-  margin-bottom: 30px;
-}
-.play-button {
-  background: white;
-  color: #667eea;
-  border: none;
-  padding: 15px 30px;
-  font-size: 18px;
-  font-weight: bold;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  margin-bottom: 15px;
-}
-.play-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-.download-button {
-  background: rgba(255,255,255,0.2);
-  color: white;
-  border: 2px solid white;
-  padding: 12px 25px;
-  font-size: 16px;
-  font-weight: bold;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  text-decoration: none;
-}
-.download-button:hover {
-  background: white;
-  color: #667eea;
-}
-.controls {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  color: white;
-  margin-bottom: 15px;
-}
-.speed-control {
-  background: rgba(255,255,255,0.2);
-  border: 1px solid rgba(255,255,255,0.3);
-  color: white;
-  padding: 8px 15px;
-  border-radius: 20px;
-  font-size: 14px;
-}
-.content {
-  color: #333;
-  white-space: pre-wrap;
-}
-.content h2 {
-  color: #667eea;
-  font-size: 22px;
-  margin: 30px 0 15px 0;
-}
-.content h3 {
-  color: #333;
-  font-size: 18px;
-  margin: 20px 0 10px 0;
-}
-.footer {
-  text-align: center;
-  margin-top: 40px;
-  padding-top: 20px;
-  border-top: 1px solid #ddd;
-  color: #999;
-  font-size: 14px;
-}
-.status {
-  color: white;
-  font-size: 14px;
-  text-align: center;
-}
-</style>
-</head>
-<body>
-<div class="container">
-<h1>📱 今日のAIニュース</h1>
-<div class="date">生成日時: ''' + time_str + '''</div>
+        <div class="audio-controls">
+          <button class="play-button" id="playBtn" onclick="toggleSpeech()">
+            <span id="playIcon">▶️</span>
+            <span id="playText">音声で聞く(オンライン)</span>
+          </button>
+          <a href="daily_news.mp3" download class="download-button">
+            <span>📥</span>
+            <span>MP3をダウンロード(オフライン用)</span>
+          </a>
+          <div class="controls">
+            <label for="speed">速度:</label>
+            <select id="speed" class="speed-control" onchange="changeSpeed()">
+              <option value="0.75">0.75x</option>
+              <option value="1" selected>1x</option>
+              <option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option>
+            </select>
+          </div>
+          <div class="status" id="status">準備完了</div>
+        </div>
 
-<div class="audio-controls">
-  <button class="play-button" id="playBtn" onclick="toggleSpeech()">
-    <span id="playIcon">▶️</span>
-    <span id="playText">音声で聞く(オンライン)</span>
-  </button>
-  <a href="daily_news.mp3" download class="download-button">
-    <span>📥</span>
-    <span>MP3をダウンロード(オフライン用)</span>
-  </a>
-  <div class="controls">
-    <label for="speed">速度:</label>
-    <select id="speed" class="speed-control" onchange="changeSpeed()">
-      <option value="0.75">0.75x</option>
-      <option value="1" selected>1x</option>
-      <option value="1.25">1.25x</option>
-      <option value="1.5">1.5x</option>
-    </select>
-  </div>
-  <div class="status" id="status">準備完了</div>
-</div>
+        <div class="content" id="content">
+        {html_news}
+        </div>
 
-<div class="content" id="content">
-''' + html_news + '''
-</div>
+        <div class="footer">
+        Google Apps Script (収集) + GitHub Actions (音声化)
+        </div>
+        </div>
 
-<div class="footer">
-Google Apps Script (収集) + GitHub Actions (音声化)
-</div>
-</div>
+        <script>
+        let synth = window.speechSynthesis;
+        let utterance = null;
+        let isPlaying = false;
 
-<script>
-let synth = window.speechSynthesis;
-let utterance = null;
-let isPlaying = false;
+        function getTextContent() {{
+          return document.getElementById('content').innerText;
+        }}
 
-function getTextContent() {
-  return document.getElementById('content').innerText;
-}
+        function toggleSpeech() {{
+          if (isPlaying) {{
+            synth.cancel();
+            isPlaying = false;
+            updateButton(false);
+            document.getElementById('status').textContent = '停止';
+          }} else {{
+            const text = getTextContent();
+            utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ja-JP';
+            utterance.rate = parseFloat(document.getElementById('speed').value);
+            
+            utterance.onstart = () => {{
+              isPlaying = true;
+              updateButton(true);
+              document.getElementById('status').textContent = '再生中...';
+            }};
+            
+            utterance.onend = () => {{
+              isPlaying = false;
+              updateButton(false);
+              document.getElementById('status').textContent = '完了';
+            }};
+            
+            synth.speak(utterance);
+          }}
+        }}
 
-function toggleSpeech() {
-  if (isPlaying) {
-    synth.cancel();
-    isPlaying = false;
-    updateButton(false);
-    document.getElementById('status').textContent = '停止';
-  } else {
-    const text = getTextContent();
-    utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ja-JP';
-    utterance.rate = parseFloat(document.getElementById('speed').value);
+        function changeSpeed() {{
+          if (isPlaying) {{
+            synth.cancel();
+            toggleSpeech();
+          }}
+        }}
 
-    utterance.onstart = () => {
-      isPlaying = true;
-      updateButton(true);
-      document.getElementById('status').textContent = '再生中...';
-    };
-
-    utterance.onend = () => {
-      isPlaying = false;
-      updateButton(false);
-      document.getElementById('status').textContent = '完了';
-    };
-
-    synth.speak(utterance);
-  }
-}
-
-function changeSpeed() {
-  if (isPlaying) {
-    synth.cancel();
-    toggleSpeech();
-  }
-}
-
-function updateButton(playing) {
-  const icon = document.getElementById('playIcon');
-  const text = document.getElementById('playText');
-  if (playing) {
-    icon.textContent = '⏸️';
-    text.textContent = '停止';
-  } else {
-    icon.textContent = '▶️';
-    text.textContent = '音声で聞く(オンライン)';
-  }
-}
-</script>
-</body>
-</html>'''
-            return html
+        function updateButton(playing) {{
+          const icon = document.getElementById('playIcon');
+          const text = document.getElementById('playText');
+          if (playing) {{
+            icon.textContent = '⏸️';
+            text.textContent = '停止';
+          }} else {{
+            icon.textContent = '▶️';
+            text.textContent = '音声で聞く(オンライン)';
+          }}
+        }}
+        </script>
+        </body>
+        </html>"""
+            
+            return html_template.format(time_str=time_str, html_news=html_news)
 
         def upload_file(local_path, github_path):
             with open(local_path, 'rb') as f:
                 content = base64.b64encode(f.read()).decode('utf-8')
-
-            url = f"<https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{github_path}>"
+            
+            url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/{github_path}"
             headers = {
                 'Authorization': f'token {GITHUB_TOKEN}',
                 'Content-Type': 'application/json'
             }
-
+            
             response = requests.get(url, headers=headers)
             sha = response.json().get('sha') if response.status_code == 200 else None
-
+            
             data = {'message': f'Update {github_path}', 'content': content}
             if sha:
                 data['sha'] = sha
-
+            
             response = requests.put(url, headers=headers, json=data)
             if response.status_code in [200, 201]:
                 print(f"アップロード成功: {github_path}")
 
         def delete_old_folders():
-            url = f"<https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/>"
+            url = f"https://api.github.com/repos/{GITHUB_USERNAME}/{GITHUB_REPO}/contents/"
             headers = {'Authorization': f'token {GITHUB_TOKEN}'}
-
+            
             response = requests.get(url, headers=headers)
             if response.status_code != 200:
                 return
-
+            
             items = response.json()
             today = datetime.utcnow()
             keep_date = today - timedelta(days=DAYS_TO_KEEP)
-
+            
             for item in items:
                 if item['type'] == 'dir' and len(item['name']) == 10:
                     try:
@@ -365,22 +362,27 @@ function updateButton(playing) {
 
         print("=== 音声・HTML生成開始 ===")
         news_text, today = fetch_news_text()
-
+        
         if news_text:
             speech_text = create_speech_text(news_text)
             generate_audio(speech_text, "daily_news.mp3")
             html_content = create_html(news_text, today)
-
+            
             with open("index.html", "w", encoding="utf-8") as f:
                 f.write(html_content)
-
+            
             upload_file("index.html", f"{today}/index.html")
             upload_file("daily_news.mp3", f"{today}/daily_news.mp3")
             delete_old_folders()
-
+            
             print(f"完了! URL: https://{GITHUB_USERNAME}.github.io/{GITHUB_REPO}/{today}/")
         else:
             print("ニューステキストが見つかりません")
-        SCRIPT_END
-
-        python generate.py
+        PYEOF
+    
+    - name: Run Python script
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        GITHUB_USERNAME: ${{ github.repository_owner }}
+        GITHUB_REPO: ${{ github.event.repository.name }}
+      run: python generate.py
