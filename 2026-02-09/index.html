@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今日のAIニュース</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.8;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+h1 {
+  color: #333;
+  font-size: 28px;
+  margin-bottom: 10px;
+  border-bottom: 3px solid #667eea;
+  padding-bottom: 15px;
+}
+.date {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.audio-controls {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+}
+.play-button {
+  background: white;
+  color: #667eea;
+  border: none;
+  padding: 15px 30px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+.play-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.download-button {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 2px solid white;
+  padding: 12px 25px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  text-decoration: none;
+}
+.download-button:hover {
+  background: white;
+  color: #667eea;
+}
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: white;
+  margin-bottom: 15px;
+}
+.speed-control {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+.content {
+  color: #333;
+  white-space: pre-wrap;
+}
+.content h2 {
+  color: #667eea;
+  font-size: 22px;
+  margin: 30px 0 15px 0;
+}
+.content h3 {
+  color: #333;
+  font-size: 18px;
+  margin: 20px 0 10px 0;
+}
+.footer {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+  color: #999;
+  font-size: 14px;
+}
+.status {
+  color: white;
+  font-size: 14px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>📱 今日のAIニュース</h1>
+<div class="date">生成日時: 2026年02月09日 20:19</div>
+
+<div class="audio-controls">
+  <button class="play-button" id="playBtn" onclick="toggleSpeech()">
+    <span id="playIcon">▶️</span>
+    <span id="playText">音声で聞く(オンライン)</span>
+  </button>
+  <a href="daily_news.mp3" download class="download-button">
+    <span>📥</span>
+    <span>MP3をダウンロード(オフライン用)</span>
+  </a>
+  <div class="controls">
+    <label for="speed">速度:</label>
+    <select id="speed" class="speed-control" onchange="changeSpeed()">
+      <option value="0.75">0.75x</option>
+      <option value="1" selected>1x</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+    </select>
+  </div>
+  <div class="status" id="status">準備完了</div>
+</div>
+
+<div class="content" id="content">
+<h2> 今日のAIニュース <h2><br><br><h3>ニュース1</h3><br>タイトル: X(旧Twitter)が開発者向けAPIの新しい従量課金モデルを発表、月額200ドルまたは5000ドルの固定料金制から正式に移行<br>内容: X(旧Twitter)が開発者向けAPIの価格体系として新しい従量課金制を発表しました。これまでは月額200ドル(約3万1000円)または5000ドル(約78万円)の固定料金を支払う必要がありましたが、今後は事前購入したクレジットがAPIリクエストに応じて消費されるようになります。続きを読む...<br><br><h3>ニュース2</h3><br>タイトル: データセンター建設を3年間停止する法案をニューヨーク州議会が発表<br>内容: 急増するデータセンターの建設に歯止めをかけ、周囲の環境に与える影響を評価するために時間を稼ぐ法案をニューヨーク州議会が発表しました。この法案により、新規データセンターの建設が3年間禁止される見込みです。続きを読む...<br><br><h3>ニュース3</h3><br>タイトル: OpenClawの「AIスキル」を装ったマルウェアが数百件アップロードされているという報告<br>内容: OpenClaw(旧Clawdbot)はAIエージェント専用のSNS「Moltbook」でアカウント開設が唯一許可されているオープンソースのAIエージェントで、PC上に自分専用のAIアシスタントを常駐させ、パソコン操作やスマートフォン連携による様々な作業を自動化することができます。OpenClawは「スキル」を追加することで誰でも簡単に機能を強化することができますが、スキルを手に入れるためのマーケ<br><br><br><h2> お金になる話 <h2><br><br><h3>AI副業のトレンド</h3><br>ココナラやランサーズで「AI画像生成」の依頼が増えています。1件3000円から1万円程度。Canvaと組み合わせてバナーやロゴを作る人が稼いでいます。<br><br><h3>AIライティングで副業</h3><br>ブログ記事の下書きをAIで作成し、人間が仕上げるサービスも需要があります。1記事3000文字で5000円程度が相場です。<br><br><br><h2> 今すぐ試せる情報 <h2><br><br>• ChatGPT音声機能: スマホアプリから無料で利用可能<br>• Canva AI機能: 無料プランでもText to Imageが使えます<br>• Perplexity AI: 無料で使える検索特化AI<br>
+</div>
+
+<div class="footer">
+Google Apps Script (収集) + GitHub Actions (音声化)
+</div>
+</div>
+
+<script>
+let synth = window.speechSynthesis;
+let utterance = null;
+let isPlaying = false;
+
+function getTextContent() {
+  return document.getElementById("content").innerText;
+}
+
+function toggleSpeech() {
+  if (isPlaying) {
+    synth.cancel();
+    isPlaying = false;
+    updateButton(false);
+    document.getElementById("status").textContent = "停止";
+  } else {
+    const text = getTextContent();
+    utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "ja-JP";
+    utterance.rate = parseFloat(document.getElementById("speed").value);
+    
+    utterance.onstart = () => {
+      isPlaying = true;
+      updateButton(true);
+      document.getElementById("status").textContent = "再生中...";
+    };
+    
+    utterance.onend = () => {
+      isPlaying = false;
+      updateButton(false);
+      document.getElementById("status").textContent = "完了";
+    };
+    
+    synth.speak(utterance);
+  }
+}
+
+function changeSpeed() {
+  if (isPlaying) {
+    synth.cancel();
+    toggleSpeech();
+  }
+}
+
+function updateButton(playing) {
+  const icon = document.getElementById("playIcon");
+  const text = document.getElementById("playText");
+  if (playing) {
+    icon.textContent = "⏸️";
+    text.textContent = "停止";
+  } else {
+    icon.textContent = "▶️";
+    text.textContent = "音声で聞く(オンライン)";
+  }
+}
+</script>
+</body>
+</html>
