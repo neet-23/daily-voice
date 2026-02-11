@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今日のAIニュース</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.8;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+h1 {
+  color: #333;
+  font-size: 28px;
+  margin-bottom: 10px;
+  border-bottom: 3px solid #667eea;
+  padding-bottom: 15px;
+}
+.date {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.audio-controls {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+}
+.play-button {
+  background: white;
+  color: #667eea;
+  border: none;
+  padding: 15px 30px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+.play-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.download-button {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 2px solid white;
+  padding: 12px 25px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  text-decoration: none;
+}
+.download-button:hover {
+  background: white;
+  color: #667eea;
+}
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: white;
+  margin-bottom: 15px;
+}
+.speed-control {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+.content {
+  color: #333;
+  white-space: pre-wrap;
+}
+.content h2 {
+  color: #667eea;
+  font-size: 22px;
+  margin: 30px 0 15px 0;
+}
+.content h3 {
+  color: #333;
+  font-size: 18px;
+  margin: 20px 0 10px 0;
+}
+.footer {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+  color: #999;
+  font-size: 14px;
+}
+.status {
+  color: white;
+  font-size: 14px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>📱 今日のAIニュース</h1>
+<div class="date">生成日時: 2026年02月12日 06:44</div>
+
+<div class="audio-controls">
+  <button class="play-button" id="playBtn" onclick="toggleSpeech()">
+    <span id="playIcon">▶️</span>
+    <span id="playText">音声で聞く(オンライン)</span>
+  </button>
+  <a href="daily_news.mp3" download class="download-button">
+    <span>📥</span>
+    <span>MP3をダウンロード(オフライン用)</span>
+  </a>
+  <div class="controls">
+    <label for="speed">速度:</label>
+    <select id="speed" class="speed-control" onchange="changeSpeed()">
+      <option value="0.75">0.75x</option>
+      <option value="1" selected>1x</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+    </select>
+  </div>
+  <div class="status" id="status">準備完了</div>
+</div>
+
+<div class="content" id="content">
+<h2> 今日のAIニュース <h2><br><br><h3>ニュース1</h3><br>タイトル: 生成AIに大切な人へのメッセージを書かせると「不誠実だ」と感じて罪悪感が強まる<br>内容: バレンタインに送るメッセージや感謝メール、誕生日カードなど、大切な相手に送るメッセージは短文であっても「自分のために考えてくれた言葉」だと受け取られやすいものです。アメリカのウェストバージニア大学を中心とする研究者らは、生成AIにこうしたメッセージを作らせてコピー＆ペーストし自分が書いたものとして送ると、送り手自身の罪悪感が強まるという研究結果を報告しました。続きを読む...<br><br><h3>ニュース2</h3><br>タイトル: OpenAIが性差別を理由に安全担当ヴァイスプレジデントを解雇、「アダルトモード」とも関係あり？<br>内容: OpenAIが、安全担当ヴァイスプレジデントを務めていたライアン・バイアーマイスター氏を「同僚男性に対する性差別」を理由として解雇していたことがわかりました。バイアーマイスター氏自身は否定する声明を発表しています。続きを読む...<br><br><h3>ニュース3</h3><br>タイトル: 無料で友人・家族・同僚といった身内だけで安全に画像を共有するという問題を解決できる「Slink」、プライベートなセルフホスト環境が構築可能<br>内容: 家族や友人、同僚など身内だけで画像を共有したいという場合に、セルフホストで構築できる簡易な画像共有システムとして「Slink」が公開されています。続きを読む...<br><br><h3>ニュース4</h3><br>タイトル: 元AI懐疑派の開発者が「仕事で使えるAI」にたどり着くまでの6ステップ<br>内容: AIによるコーディング支援をめぐる議論は「便利」と「危険」の二択になりがちですが、ツールの使いどころを段階的に見つけていく方法もあります。HashiCorpの開発者であるMitchell Hashimoto氏は自身のブログで「AIに懐疑的だった自分がチャット中心の使い方からエージェントを前提にした運用へ移行していくまでの手順」を6つのステップに整理しました。続きを読む...<br><br><h3>ニュース5</h3><br>タイトル: Appleのディスプレイに使われている「Nano-textureガラス」はあなたにとって必要か？<br>内容: Nano-textureガラスは表面加工を施されたガラスであり近年のApple製ディスプレイにオプションとして採用されていますが、決して安くはないオプションであることから「PCのディスプレイをNano-textureガラスにする必要はあるだろうか？」と悩む購入者は多いはず。ツールビルダーのJonathan Borichevskiy氏は自身のブログにて、Nano-texture製品を購入すべきかどう<br><br><br><h2> お金になる話 <h2><br><br><h3>AI副業のトレンド</h3><br>ココナラやランサーズで「AI画像生成」の依頼が増えています。1件3000円から1万円程度。Canvaと組み合わせてバナーやロゴを作る人が稼いでいます。<br><br><h3>AIライティングで副業</h3><br>ブログ記事の下書きをAIで作成し、人間が仕上げるサービスも需要があります。1記事3000文字で5000円程度が相場です。<br><br><br><h2> 今すぐ試せる情報 <h2><br><br>• ChatGPT音声機能: スマホアプリから無料で利用可能<br>• Canva AI機能: 無料プランでもText to Imageが使えます<br>• Perplexity AI: 無料で使える検索特化AI<br>
+</div>
+
+<div class="footer">
+Google Apps Script (収集) + GitHub Actions (音声化)
+</div>
+</div>
+
+<script>
+let synth = window.speechSynthesis;
+let utterance = null;
+let isPlaying = false;
+
+function getTextContent() {
+  return document.getElementById("content").innerText;
+}
+
+function toggleSpeech() {
+  if (isPlaying) {
+    synth.cancel();
+    isPlaying = false;
+    updateButton(false);
+    document.getElementById("status").textContent = "停止";
+  } else {
+    const text = getTextContent();
+    utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "ja-JP";
+    utterance.rate = parseFloat(document.getElementById("speed").value);
+    
+    utterance.onstart = () => {
+      isPlaying = true;
+      updateButton(true);
+      document.getElementById("status").textContent = "再生中...";
+    };
+    
+    utterance.onend = () => {
+      isPlaying = false;
+      updateButton(false);
+      document.getElementById("status").textContent = "完了";
+    };
+    
+    synth.speak(utterance);
+  }
+}
+
+function changeSpeed() {
+  if (isPlaying) {
+    synth.cancel();
+    toggleSpeech();
+  }
+}
+
+function updateButton(playing) {
+  const icon = document.getElementById("playIcon");
+  const text = document.getElementById("playText");
+  if (playing) {
+    icon.textContent = "⏸️";
+    text.textContent = "停止";
+  } else {
+    icon.textContent = "▶️";
+    text.textContent = "音声で聞く(オンライン)";
+  }
+}
+</script>
+</body>
+</html>
