@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今日のAIニュース</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.8;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+h1 {
+  color: #333;
+  font-size: 28px;
+  margin-bottom: 10px;
+  border-bottom: 3px solid #667eea;
+  padding-bottom: 15px;
+}
+.date {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.audio-controls {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+}
+.play-button {
+  background: white;
+  color: #667eea;
+  border: none;
+  padding: 15px 30px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+.play-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.download-button {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 2px solid white;
+  padding: 12px 25px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  text-decoration: none;
+}
+.download-button:hover {
+  background: white;
+  color: #667eea;
+}
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: white;
+  margin-bottom: 15px;
+}
+.speed-control {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+.content {
+  color: #333;
+  white-space: pre-wrap;
+}
+.content h2 {
+  color: #667eea;
+  font-size: 22px;
+  margin: 30px 0 15px 0;
+}
+.content h3 {
+  color: #333;
+  font-size: 18px;
+  margin: 20px 0 10px 0;
+}
+.footer {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+  color: #999;
+  font-size: 14px;
+}
+.status {
+  color: white;
+  font-size: 14px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>📱 今日のAIニュース</h1>
+<div class="date">生成日時: 2026年02月16日 06:35</div>
+
+<div class="audio-controls">
+  <button class="play-button" id="playBtn" onclick="toggleSpeech()">
+    <span id="playIcon">▶️</span>
+    <span id="playText">音声で聞く(オンライン)</span>
+  </button>
+  <a href="daily_news.mp3" download class="download-button">
+    <span>📥</span>
+    <span>MP3をダウンロード(オフライン用)</span>
+  </a>
+  <div class="controls">
+    <label for="speed">速度:</label>
+    <select id="speed" class="speed-control" onchange="changeSpeed()">
+      <option value="0.75">0.75x</option>
+      <option value="1" selected>1x</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+    </select>
+  </div>
+  <div class="status" id="status">準備完了</div>
+</div>
+
+<div class="content" id="content">
+<h2> 今日のAIニュース <h2><br><br><h3>ニュース1</h3><br>タイトル: TVアニメ『鉄鍋のジャン！』ティザーPV公開、「原作発表当時の世相・描写を尊重し過激な描写が含まれる場合があります」<br>内容: 1995年から2000年にかけて週刊少年チャンピオンに連載され、2026年にTVアニメ放送が予定されている『鉄鍋のジャン！』のティザーPVが公開されました。続きを読む...<br><br><h3>ニュース2</h3><br>タイトル: 小説家の「認知症の兆候」が診断されるずっと前から小説の中に現れていたとの研究結果<br>内容: 「ディスクワールド騒動記」「遠い星からきたノーム」などの小説で知られるベストセラー作家のテリー・プラチェット氏は2007年、若年性のアルツハイマー病を発症していることを公表しました。プラチェット氏がアルツハイマー病を公表する以前から、小説の中に「認知症の兆候」が現れていたとする研究結果が報告されています。続きを読む...<br><br><h3>ニュース3</h3><br>タイトル: 私たちは「ソフトウェア工学の第3の黄金時代」の真っただ中にいる<br>内容: 現代のソフトウェア開発に影響を与えた統一モデリング言語の開発などで知られるエンジニアのグラディ・ブーチ氏をゲストに招いたポッドキャストを、テクノロジー系メディアのThe Pragmatic Engineerが公開しています。ブーチ氏は番組の中で、AIの進化によって「ソフトウェアエンジニアは不要になるのではないか」という議論が広がる中、むしろ今こそ新たな黄金期に入ったと指摘しています。続きを読む..<br><br><h3>ニュース4</h3><br>タイトル: 無料でKobo・KOReader同期・EPUB・PDF・マンガ用リーダーを備えたセルフホスト型のマルチユーザーデジタルライブラリ「Booklore」<br>内容: 自分だけの電子書籍ライブラリサイトが無料で構築でき、家族や友人とも共有可能なマルチユーザー対応の電子書籍ライブラリサーバー「Booklore」が公開されています。続きを読む...<br><br><h3>ニュース5</h3><br>タイトル: スマホに装着するだけで簡単に温度を測定できる外付け赤外線カメラモジュール「HIKMICRO Mini2Plus V2」を使ってみたよレビュー<br>内容: HIKMICROの「Mini2Plus V2」はiOS・Androidに対応したバッテリー不要の外付け式赤外線カメラモジュールで、iPhoneやAndroidスマートフォンに接続するだけで簡単に温度を測定してサーマル画像を撮影することが可能。GIGAZINE編集部の欲しいものリスト経由で読者から支援してもらったので、実際に使ってみました。続きを読む...<br><br><br><h2> お金になる話 <h2><br><br><h3>AI副業のトレンド</h3><br>ココナラやランサーズで「AI画像生成」の依頼が増えています。1件3000円から1万円程度。Canvaと組み合わせてバナーやロゴを作る人が稼いでいます。<br><br><h3>AIライティングで副業</h3><br>ブログ記事の下書きをAIで作成し、人間が仕上げるサービスも需要があります。1記事3000文字で5000円程度が相場です。<br><br><br><h2> 今すぐ試せる情報 <h2><br><br>• ChatGPT音声機能: スマホアプリから無料で利用可能<br>• Canva AI機能: 無料プランでもText to Imageが使えます<br>• Perplexity AI: 無料で使える検索特化AI<br>
+</div>
+
+<div class="footer">
+Google Apps Script (収集) + GitHub Actions (音声化)
+</div>
+</div>
+
+<script>
+let synth = window.speechSynthesis;
+let utterance = null;
+let isPlaying = false;
+
+function getTextContent() {
+  return document.getElementById("content").innerText;
+}
+
+function toggleSpeech() {
+  if (isPlaying) {
+    synth.cancel();
+    isPlaying = false;
+    updateButton(false);
+    document.getElementById("status").textContent = "停止";
+  } else {
+    const text = getTextContent();
+    utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "ja-JP";
+    utterance.rate = parseFloat(document.getElementById("speed").value);
+    
+    utterance.onstart = () => {
+      isPlaying = true;
+      updateButton(true);
+      document.getElementById("status").textContent = "再生中...";
+    };
+    
+    utterance.onend = () => {
+      isPlaying = false;
+      updateButton(false);
+      document.getElementById("status").textContent = "完了";
+    };
+    
+    synth.speak(utterance);
+  }
+}
+
+function changeSpeed() {
+  if (isPlaying) {
+    synth.cancel();
+    toggleSpeech();
+  }
+}
+
+function updateButton(playing) {
+  const icon = document.getElementById("playIcon");
+  const text = document.getElementById("playText");
+  if (playing) {
+    icon.textContent = "⏸️";
+    text.textContent = "停止";
+  } else {
+    icon.textContent = "▶️";
+    text.textContent = "音声で聞く(オンライン)";
+  }
+}
+</script>
+</body>
+</html>
