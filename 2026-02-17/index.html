@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今日のAIニュース</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.8;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
+}
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+h1 {
+  color: #333;
+  font-size: 28px;
+  margin-bottom: 10px;
+  border-bottom: 3px solid #667eea;
+  padding-bottom: 15px;
+}
+.date {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.audio-controls {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+}
+.play-button {
+  background: white;
+  color: #667eea;
+  border: none;
+  padding: 15px 30px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+.play-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.download-button {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 2px solid white;
+  padding: 12px 25px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  text-decoration: none;
+}
+.download-button:hover {
+  background: white;
+  color: #667eea;
+}
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: white;
+  margin-bottom: 15px;
+}
+.speed-control {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+.content {
+  color: #333;
+  white-space: pre-wrap;
+}
+.content h2 {
+  color: #667eea;
+  font-size: 22px;
+  margin: 30px 0 15px 0;
+}
+.content h3 {
+  color: #333;
+  font-size: 18px;
+  margin: 20px 0 10px 0;
+}
+.footer {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+  color: #999;
+  font-size: 14px;
+}
+.status {
+  color: white;
+  font-size: 14px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>📱 今日のAIニュース</h1>
+<div class="date">生成日時: 2026年02月17日 06:39</div>
+
+<div class="audio-controls">
+  <button class="play-button" id="playBtn" onclick="toggleSpeech()">
+    <span id="playIcon">▶️</span>
+    <span id="playText">音声で聞く(オンライン)</span>
+  </button>
+  <a href="daily_news.mp3" download class="download-button">
+    <span>📥</span>
+    <span>MP3をダウンロード(オフライン用)</span>
+  </a>
+  <div class="controls">
+    <label for="speed">速度:</label>
+    <select id="speed" class="speed-control" onchange="changeSpeed()">
+      <option value="0.75">0.75x</option>
+      <option value="1" selected>1x</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+    </select>
+  </div>
+  <div class="status" id="status">準備完了</div>
+</div>
+
+<div class="content" id="content">
+<h2> 今日のAIニュース <h2><br><br><h3>ニュース1</h3><br>タイトル: OpenAIのミッションが徐々に変化してついに「安全に」という言葉まで削除されたとの指摘<br>内容: チャットAIのChatGPTや動画生成AIのSoraを開発するOpenAIは、非営利団体が傘下の営利企業を管理・保有するという構造となっていますが、2026年中の新規株式公開(IPO)を狙うなど営利企業としての性質を徐々に強めています。そんな中、OpenAIがアメリカ合衆国内国歳入庁(IRS)に提出していたミッションステートメントの文言から、2024年版でついに「safely(安全に)」という言葉<br><br><h3>ニュース2</h3><br>タイトル: 安眠に役立つとされている「ピンクノイズ」が実は睡眠の質を損なってしまうかもしれない<br>内容: 「ピンクノイズ」とは、周波数が低下するにつれて強度が高くなるタイプのノイズ音で、雨音や風が木の間を抜けるような柔らかい音とも形容されます。そんなピンクノイズには人を眠りに誘う効果があるといわれていますが、新たな研究ではピンクノイズが睡眠の質を損なう可能性があるとの結果が示されました。続きを読む...<br><br><h3>ニュース3</h3><br>タイトル: YouTubeのショート動画を動画一覧から削除する方法<br>内容: 「YouTubeのショート動画を連続再生していたら時間が過ぎ去っていた」という経験がある人は多いはず。そんな時に役立ちそうな「YouTubeのトップ画面や検索結果からショート動画を非表示にできるブロックリスト」が公開されていたので使ってみました。続きを読む...<br><br><h3>ニュース4</h3><br>タイトル: ニュースメディア各社がAIによるデータ収集を懸念しインターネットアーカイブのアクセスを制限<br>内容: 膨大なネットコンテンツの収集・保存を行っているインターネットアーカイブは、ページのバージョンや日時ごとにも保存されており、保存されたウェブページの総数は2025年10月に1兆件を超えました。インターネットアーカイブが保存したページの多くは公開ツールであるWayback Machineでアクセスできますが、インターネットアーカイブの自由な情報アクセスへの取り組みがAIの学習データに利用されることを懸<br><br><h3>ニュース5</h3><br>タイトル: GoogleのネットワークカメラNestでは無料ユーザーが再生できない過去の録画データもサーバーに勝手に保存されてしまうことが明らかに<br>内容: GoogleのネットワークカメラであるGoogle Nest Camでは、基本的に過去の録画データを閲覧するには有料サブスクリプションサービスのGoogle Home Premiumに加入する必要があります。この有料サブスクリプションを使わずにGoogle Nest Camを利用する場合、過去数時間分の映像しかチェックできないのですが、過去の録画データはGoogleのサーバーに勝手に保存されてしま<br><br><br><h2> お金になる話 <h2><br><br><h3>AI副業のトレンド</h3><br>ココナラやランサーズで「AI画像生成」の依頼が増えています。1件3000円から1万円程度。Canvaと組み合わせてバナーやロゴを作る人が稼いでいます。<br><br><h3>AIライティングで副業</h3><br>ブログ記事の下書きをAIで作成し、人間が仕上げるサービスも需要があります。1記事3000文字で5000円程度が相場です。<br><br><br><h2> 今すぐ試せる情報 <h2><br><br>• ChatGPT音声機能: スマホアプリから無料で利用可能<br>• Canva AI機能: 無料プランでもText to Imageが使えます<br>• Perplexity AI: 無料で使える検索特化AI<br>
+</div>
+
+<div class="footer">
+Google Apps Script (収集) + GitHub Actions (音声化)
+</div>
+</div>
+
+<script>
+let synth = window.speechSynthesis;
+let utterance = null;
+let isPlaying = false;
+
+function getTextContent() {
+  return document.getElementById("content").innerText;
+}
+
+function toggleSpeech() {
+  if (isPlaying) {
+    synth.cancel();
+    isPlaying = false;
+    updateButton(false);
+    document.getElementById("status").textContent = "停止";
+  } else {
+    const text = getTextContent();
+    utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "ja-JP";
+    utterance.rate = parseFloat(document.getElementById("speed").value);
+    
+    utterance.onstart = () => {
+      isPlaying = true;
+      updateButton(true);
+      document.getElementById("status").textContent = "再生中...";
+    };
+    
+    utterance.onend = () => {
+      isPlaying = false;
+      updateButton(false);
+      document.getElementById("status").textContent = "完了";
+    };
+    
+    synth.speak(utterance);
+  }
+}
+
+function changeSpeed() {
+  if (isPlaying) {
+    synth.cancel();
+    toggleSpeech();
+  }
+}
+
+function updateButton(playing) {
+  const icon = document.getElementById("playIcon");
+  const text = document.getElementById("playText");
+  if (playing) {
+    icon.textContent = "⏸️";
+    text.textContent = "停止";
+  } else {
+    icon.textContent = "▶️";
+    text.textContent = "音声で聞く(オンライン)";
+  }
+}
+</script>
+</body>
+</html>
