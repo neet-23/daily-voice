@@ -45,7 +45,7 @@ jobs:
         GITHUB_USERNAME = os.environ['GITHUB_USERNAME']
         GITHUB_REPO = os.environ['GITHUB_REPO']
         GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
-        DAYS_TO_KEEP = 2
+        DAYS_TO_KEEP = 7
 
         def fetch_news_text():
             today = (datetime.utcnow() + timedelta(hours=9)).strftime('%Y-%m-%d')
